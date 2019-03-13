@@ -10,8 +10,57 @@
 import React, { Component } from 'react';
 import { WebView } from 'react-native';
 
-type Props = {};
-export default class App extends Component<Props> {
+import { MSAdalLogin, MSAdalLogout } from 'react-native-ms-adal';
+import AzureAdal from 'react-native-azure-adal';
+
+const authority = "https://login.windows.net/common";
+const resourceUri = "https://graph.windows.net";
+const clientId = '0802f8e5-a03c-4538-a08e-727efcd71e6b';
+const redirectUri = 'msauth://com.webviewsample/Ah%2BzH6OcLZbqil1Gnl5rpShxRFk%3D';
+const validateAuthority = false;
+const useBroker = true;
+
+export default class App extends Component{
+
+  constructor(props){
+    super(props);
+
+    try{
+    this.getToken();
+    }catch(err){
+      alert(JSON.stringify(err));
+    }
+  }
+
+  state = {
+    isLoggedin: false,
+    givenName: '',
+    authDetails: {}
+  }
+
+  getToken() {
+    AzureAdal
+    .configure(authority, validateAuthority, clientId,redirectUri, useBroker)
+    .then(isConfigured => {
+      AzureAdal.login (resourceUri, '')
+      .then((authDetails) => {
+        alert(JSON.stringify(authDetails));
+        this.setState({
+          isLoggedin: true,
+          givenName: authDetails.userInfo.givenName,
+          authDetails
+        })
+      }).catch((err) => {
+        alert(JSON.stringify(err));
+        console.error(err)
+      })
+    })
+  }
+
+  componentDidMount(){
+
+  }
+
   render() {
 
     const injectJS = `
@@ -29,6 +78,8 @@ export default class App extends Component<Props> {
     localStorage.setItem("adal.token.keys","50f89ecf-358c-4575-9290-d93e15cf7632|");
     localStorage.setItem("adal.token.renew.status50f89ecf-358c-4575-9290-d93e15cf7632","Completed");
       `;
+
+      
 
     return (
       <WebView
